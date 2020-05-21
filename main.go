@@ -11,7 +11,6 @@ const DIR_PATH string = "/var/www";
 
 func FileServer(fs http.FileSystem) http.Handler {
 	fileServer := http.FileServer(fs)
-	http.Handle("/static/",http.StripPrefix("/static/",http.FileServer(http.Dir("static"))))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := fs.Open(path.Clean(r.URL.Path))
 		if os.IsNotExist(err) {
