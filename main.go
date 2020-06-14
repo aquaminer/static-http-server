@@ -7,7 +7,18 @@ import (
 	"os"
 	"path"
 )
-const DIR_PATH string = "/var/www";
+
+func getEnv(env string, defVal string) string {
+	val, exists := os.LookupEnv(env);
+	if(exists){
+		return val;
+	}else{
+		return defVal;
+	}
+}
+var dirPath = getEnv("DIR_PATH", "/var/www");
+var fallbackFilePath = path.Clean(getEnv("FALLBACK_FILE", dirPath + "/index.html"));
+var fallbackFile, _ = ioutil.ReadFile(fallbackFilePath)
 
 func FileServer(fs http.FileSystem) http.Handler {
 	fileServer := http.FileServer(fs)
@@ -15,8 +26,7 @@ func FileServer(fs http.FileSystem) http.Handler {
 		_, err := fs.Open(path.Clean(r.URL.Path))
 		if os.IsNotExist(err) {
 			w.WriteHeader(200)
-			var file, _ = ioutil.ReadFile(path.Clean(DIR_PATH + "/index.html"))
-			w.Write(file);
+			w.Write(fallbackFile)
 
 			return
 		}
@@ -25,5 +35,5 @@ func FileServer(fs http.FileSystem) http.Handler {
 }
 
 func main() {
-	log.Fatal(http.ListenAndServe(":8080", FileServer(http.Dir(DIR_PATH))))
+	log.Fatal(http.ListenAndServe(":8080", FileServer(http.Dir(dirPath))))
 }
